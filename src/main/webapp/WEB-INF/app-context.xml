@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:mvc="http://www.springframework.org/schema/mvc"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:tx="http://www.springframework.org/schema/tx"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+  <!-- Enable the configuration of transactional behavior based on annotations -->
+  <tx:annotation-driven/>
+
+  <mvc:annotation-driven/>
+  <context:annotation-config/>
+  <context:component-scan base-package="com.phase2"/>
+  <context:component-scan base-package="com.phase2.controller"/>
+
+  <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+    <property name="dataSourceClassName" value="org.postgresql.ds.PGSimpleDataSource"/>
+    <property name="dataSourceProperties">
+      <props>
+        <prop key="url">jdbc:postgresql://localhost:5432/university</prop>
+        <prop key="user">postgres</prop>
+        <prop key="password">postgres</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <property name="packagesToScan" value="com.phase2.model"/>
+    <property name="dataSource" ref="dataSource"/>
+    <property name="jpaVendorAdapter">
+      <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="generateDdl" value="false"/>
+<!--        <property name="showSql" value="true"/>-->
+      </bean>
+    </property>
+  </bean>
+
+  <!-- Configure the multipart resolver -->
+  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <property name="defaultEncoding" value="UTF-8"/>
+    <property name="maxUploadSize" value="2097152"/>
+  </bean>
+
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+  </bean>
+
+  <bean id="studentDao" class="com.phase2.dao.impl.DefaultStudentDao"/>
+  <bean id="phoneDao" class="com.phase2.dao.impl.DefaultPhoneDao"/>
+  <bean id="phoneTypesDao" class="com.phase2.dao.impl.DefaultPhoneTypesDao"/>
+  <bean id="groupDao" class="com.phase2.dao.impl.DefaultGroupDao"/>
+  <bean id="addressDao" class="com.phase2.dao.impl.DefaultAddressDao"/>
+  <bean id="membershipDao" class="com.phase2.dao.impl.DefaultMembershipDao"/>
+
+  <bean id="studentService" class="com.phase2.service.StudentService">
+    <constructor-arg index="0" ref="studentDao"/>
+    <constructor-arg index="1" ref="phoneDao"/>
+    <constructor-arg index="2" ref="phoneTypesDao"/>
+    <constructor-arg index="3" ref="addressDao"/>
+    <constructor-arg index="4" ref="membershipDao"/>
+  </bean>
+
+  <!-- Transactions -->
+  <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+    <property name="entityManagerFactory" ref="entityManagerFactory"/>
+  </bean>
+
+
+</beans>
+
